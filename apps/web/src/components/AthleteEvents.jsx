@@ -51,9 +51,9 @@ export const AthleteEvents = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                raceId: selectedRace.race_id,
-                categoryId: selectedCategory.category_id,
-                amount: selectedCategory.entry_fee
+                raceId: selectedRace.race_id || selectedRace._id,
+                categoryId: selectedCategory.category_id || selectedCategory._id,
+                amount: selectedCategory.entryFee || selectedCategory.entry_fee
             })
         });
 
@@ -84,7 +84,7 @@ export const AthleteEvents = () => {
 
             {paymentOpen && selectedRace && (
                 <PaymentModal
-                    amount={selectedCategory?.entry_fee || 20.00}
+                    amount={selectedCategory?.entryFee || selectedCategory?.entry_fee || 20.00}
                     description={`Registration: ${selectedRace.name} - ${selectedCategory?.name}`}
                     onClose={() => setPaymentOpen(false)}
                     onSubmit={submitRegistration}
@@ -142,12 +142,12 @@ export const AthleteEvents = () => {
                         </div>
                         <div className="p-5">
                             <h3 className="font-bold text-lg text-secondary-900 mb-1">{race.name}</h3>
-                            <p className="text-sm text-gray-500 mb-4">{race.location_name} • {new Date(race.start_time).toLocaleDateString()}</p>
+                            <p className="text-sm text-gray-500 mb-4">{race.location || race.location_name} • {new Date(race.startTime || race.start_time).toLocaleDateString()}</p>
 
                             <div className="flex justify-between items-center pt-4 border-t border-gray-50">
                                 <span className="text-secondary-900 font-bold">
                                     {race.categories && race.categories.length > 0
-                                        ? `From $${Math.min(...race.categories.map(c => c.entry_fee))}`
+                                        ? `From $${Math.min(...race.categories.map(c => c.entryFee || c.entry_fee))}`
                                         : '$20.00'}
                                 </span>
                                 <button

@@ -50,20 +50,20 @@ export const LandingPage = () => {
                         <div key={race.race_id} className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow group">
                             <div className="h-48 bg-gray-200 relative">
                                 <img
-                                    src={race.location_name.includes('Victoria') ? 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800&auto=format&fit=crop' : 'https://images.unsplash.com/photo-1552674605-5d28c4e1906c?q=80&w=800&auto=format&fit=crop'}
+                                    src={(race.location || race.location_name || '').includes('Victoria') ? 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800&auto=format&fit=crop' : 'https://images.unsplash.com/photo-1552674605-5d28c4e1906c?q=80&w=800&auto=format&fit=crop'}
                                     alt={race.name}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     onError={(e) => e.target.src = 'https://placehold.co/800x600?text=Race+Event'}
                                 />
                                 <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-secondary-900">
-                                    {new Date(race.start_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                    {new Date(race.start_time || race.startTime).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                                 </div>
                             </div>
                             <div className="p-6">
                                 <h3 className="text-xl font-bold text-secondary-900 mb-2">{race.name}</h3>
                                 <p className="text-gray-500 text-sm mb-4 flex items-center">
                                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                    {race.location_name || 'Zimbabwe'}
+                                    {race.location || race.location_name || 'Zimbabwe'}
                                 </p>
                                 <Link to="/live" className="block w-full text-center bg-secondary-900 text-white py-2 rounded-lg font-medium hover:bg-secondary-800">
                                     Watch Live

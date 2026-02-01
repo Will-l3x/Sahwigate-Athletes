@@ -1,24 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export const RegistrationModal = ({ race, onClose, onProceedToPayment }) => {
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [athlete, setAthlete] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // Mock Athlete Profile (In real app, fetch from context/API)
-    const athlete = {
-        fullName: 'Nyasha Ushe',
-        dob: '1995-05-12',
-        nationalId: '63-1234567-T-12',
-        nationality: 'Zimbabwean',
-        gender: 'Male',
-        phone: '+263 77 123 4567',
-        email: 'nyasha@example.com'
-    };
+    useEffect(() => {
+        // Get logged in user ID
+        const savedUser = JSON.parse(localStorage.getItem('user'));
+        const userId = savedUser ? savedUser.id : null;
+
+        if (!userId) {
+            console.error("No user logged in");
+            setLoading(false);
+            return;
+        }
+
+        // Safety timeout in case fetch hangs
+        const timer = setTimeout(() => {
+            if (loading) {
+                console.warn("Profile fetch timed out");
+                setLoading(false);
+            }
+        }, 5000);
+
+        fetch(`http://localhost:3000/api/auth/profile/${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                setAthlete(data);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error('Failed to load profile', err);
+                setLoading(false);
+            })
+            .finally(() => clearTimeout(timer));
+
+        return () => clearTimeout(timer);
+    }, []);
 
     const handleProceed = () => {
         if (selectedCategory) {
             onProceedToPayment(selectedCategory);
         }
     };
+
+    if (loading) return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="bg-white p-8 rounded-xl animate-pulse">Loading Profile...</div>
+        </div>
+    );
+
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -52,15 +84,15 @@ export const RegistrationModal = ({ race, onClose, onProceedToPayment }) => {
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-gray-500 uppercase block mb-1">National ID</label>
-                                <p className="font-medium text-gray-900">{athlete.nationalId}</p>
+                                <p className="font-medium text-gray-900">{athlete?.national_id || athlete?.nationalId}</p>
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Date of Birth</label>
-                                <p className="font-medium text-gray-900">{athlete.dob}</p>
+                                <p className="font-medium text-gray-900">{athlete?.date_of_birth || athlete?.dob}</p>
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Nationality</label>
-                                <p className="font-medium text-gray-900">{athlete.nationality}</p>
+                                <p className="font-medium text-gray-900">{athlete?.nationality}</p>
                             </div>
                             <div className="col-span-1 md:col-span-2 mt-2 pt-4 border-t border-gray-200">
                                 <p className="text-xs text-gray-500 italic">
@@ -87,8 +119,8 @@ export const RegistrationModal = ({ race, onClose, onProceedToPayment }) => {
                                     <label
                                         key={cat.category_id}
                                         className={`block relative border rounded-xl p-4 cursor-pointer transition-all ${selectedCategory?.category_id === cat.category_id
-                                                ? 'border-secondary-900 ring-1 ring-secondary-900 bg-secondary-50'
-                                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                            ? 'border-secondary-900 ring-1 ring-secondary-900 bg-secondary-50'
+                                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                             }`}
                                     >
                                         <div className="flex items-center justify-between">

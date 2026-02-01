@@ -1,14 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export const AthletePassport = () => {
-    // Mock user data
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const savedUser = JSON.parse(localStorage.getItem('user'));
+        if (savedUser && savedUser.id) {
+            fetch(`http://localhost:3000/api/auth/profile/${savedUser.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    setUser(data);
+                    setLoading(false);
+                })
+                .catch(err => {
+                    console.error("Failed to load passport", err);
+                    setLoading(false);
+                });
+        } else {
+            setLoading(false);
+        }
+    }, []);
+
+    if (loading) return <div className="p-8 text-center text-gray-500">Loading Passport...</div>;
+    if (!user) return <div className="p-8 text-center text-red-500">Please log in to view your passport.</div>;
+
+    // Mock user data - now derived from fetched user
     const athlete = {
-        name: 'Nyasha Ushe',
-        id: 'SAH-2026-8821',
-        dob: '1998-05-12',
-        club: 'Harare Harriers',
-        emergency: 'Tariro Ushe (+263 77 123 4567)',
-        status: 'Active'
+        name: user.name || 'N/A',
+        id: user.id || 'N/A',
+        dob: user.dob || 'N/A',
+        club: user.club || 'N/A',
+        emergency: user.emergency || user.emergency_contact_name || 'N/A',
+        status: user.status || 'Active',
+        bloodType: user.blood_type,
+        allergies: user.allergies,
+        medicalConditions: user.medical_conditions
     };
 
     return (
@@ -87,15 +114,15 @@ export const AthletePassport = () => {
                             </div>
                             <div className="p-3 border rounded-lg">
                                 <p className="text-xs text-gray-500 uppercase">Blood Type</p>
-                                <p className="font-medium text-gray-900">O+</p>
+                                <p className="font-medium text-gray-900">{athlete.bloodType || 'N/A'}</p>
                             </div>
                             <div className="p-3 border rounded-lg">
                                 <p className="text-xs text-gray-500 uppercase">Allergies</p>
-                                <p className="font-medium text-gray-900">Penicillin</p>
+                                <p className="font-medium text-gray-900">{athlete.allergies || 'None'}</p>
                             </div>
                             <div className="p-3 border rounded-lg">
-                                <p className="text-xs text-gray-500 uppercase">Medical Aid</p>
-                                <p className="font-medium text-gray-900">Cimas (Active)</p>
+                                <p className="text-xs text-gray-500 uppercase">Medical Conditions</p>
+                                <p className="font-medium text-gray-900">{athlete.medicalConditions || 'None'}</p>
                             </div>
                         </div>
                     </div>

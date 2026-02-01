@@ -48,13 +48,17 @@ export const PortalSidebar = ({ title, links, user }) => {
                             <p className="text-xs text-secondary-400">{user.role}</p>
                         </div>
                     </div>
-                    <Link
-                        to="/"
+                    <button
+                        onClick={() => {
+                            localStorage.removeItem('user');
+                            localStorage.removeItem('token');
+                            window.location.href = '/login'; // Force full reload to clear any in-memory state
+                        }}
                         className="p-2 text-gray-400 hover:text-white hover:bg-secondary-800 rounded-lg transition-colors"
                         title="Log Out"
                     >
                         <span className="text-xl">🚪</span>
-                    </Link>
+                    </button>
                 </div>
             </div>
         </div>

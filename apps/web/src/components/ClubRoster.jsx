@@ -7,43 +7,48 @@ export const ClubRoster = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Mock Fetching
-    useEffect(() => {
-        const fetchRoster = async () => {
-            // Simulate fetching active members
-            const activeData = [
-                { membership_id: 'm1', user_id: 'u4', full_name: 'Nyasha Ushe', status: 'ACTIVE', dues_status: 'PAID', joined_at: '2024-01-15' },
-                { membership_id: 'm2', user_id: 'u5', full_name: 'Tariro Moyo', status: 'ACTIVE', dues_status: 'UNPAID', joined_at: '2025-02-10' },
-            ];
-            // Simulate fetching pending requests
-            const requestData = [
-                { id: 'r1', name: 'Farai Gumbo', email: 'farai@example.com', date: '2026-06-28' },
-                { id: 'r2', name: 'Sarah Smith', email: 'sarah@example.com', date: '2026-06-29' }
-            ];
+    // Real API Fetching
+    const fetchRoster = async () => {
+        try {
+            const res = await fetch(`http://localhost:3000/api/clubs/${clubId}/members`);
+            const data = await res.json();
 
-            setMembers(activeData);
-            setRequests(requestData);
+            setMembers(data.filter(m => m.status === 'ACTIVE'));
+            setRequests(data.filter(m => m.status === 'PENDING'));
             setLoading(false);
-        };
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    useEffect(() => {
         fetchRoster();
     }, []);
 
-    const handleApprove = (reqId) => {
-        const req = requests.find(r => r.id === reqId);
-        // Move to active
-        setMembers([...members, {
-            membership_id: `new-${Date.now()}`,
-            user_id: `u-${Date.now()}`,
-            full_name: req.name,
-            status: 'ACTIVE',
-            dues_status: 'UNPAID',
-            joined_at: new Date().toISOString()
-        }]);
-        setRequests(requests.filter(r => r.id !== reqId));
+    const handleApprove = async (memberId) => {
+        try {
+            await fetch(`http://localhost:3000/api/club-members/${memberId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'ACTIVE' })
+            });
+            fetchRoster(); // Refresh
+        } catch (err) {
+            console.error(err);
+        }
     };
 
-    const handleDecline = (reqId) => {
-        setRequests(requests.filter(r => r.id !== reqId));
+    const handleDecline = async (memberId) => {
+        try {
+            await fetch(`http://localhost:3000/api/club-members/${memberId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'REJECTED' })
+            });
+            fetchRoster(); // Refresh
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     return (
@@ -132,25 +137,25 @@ export const ClubRoster = () => {
                         </div>
                     ) : (
                         requests.map(req => (
-                            <div key={req.id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+                            <div key={req.membership_id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
                                 <div className="flex items-center">
                                     <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center font-bold text-primary-600 text-lg mr-4">
-                                        {req.name.charAt(0)}
+                                        {req.full_name ? req.full_name.charAt(0) : '?'}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-lg text-gray-900">{req.name}</h3>
-                                        <p className="text-sm text-gray-500">Requested on {new Date(req.date).toLocaleDateString()}</p>
+                                        <h3 className="font-bold text-lg text-gray-900">{req.full_name}</h3>
+                                        <p className="text-sm text-gray-500">Requested on {new Date(req.joined_at).toLocaleDateString()}</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-3">
                                     <button
-                                        onClick={() => handleDecline(req.id)}
+                                        onClick={() => handleDecline(req.membership_id)}
                                         className="px-4 py-2 border border-gray-300 text-gray-600 font-bold rounded-lg hover:bg-gray-50"
                                     >
                                         Decline
                                     </button>
                                     <button
-                                        onClick={() => handleApprove(req.id)}
+                                        onClick={() => handleApprove(req.membership_id)}
                                         className="px-4 py-2 bg-primary-600 text-white font-bold rounded-lg hover:bg-primary-700 shadow-sm"
                                     >
                                         Approve & Add to Roster

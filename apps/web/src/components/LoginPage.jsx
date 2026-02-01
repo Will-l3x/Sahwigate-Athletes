@@ -1,66 +1,123 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export const LoginPage = () => {
     const navigate = useNavigate();
+    const [status, setStatus] = useState('idle'); // idle, loading, error
+    const [errorMsg, setErrorMsg] = useState('');
 
-    const handleLogin = (role, path) => {
-        // In a real app, this would perform authentication.
-        // For the prototype, we simply redirect to the correct portal.
-        navigate(path);
+    // In a real app these would be inputs, but for demo buttons we can hardcode credentials or mock input
+    // To make this "Real", we should probably just have a simple quick login for the personas, 
+    // OR actually add input fields. 
+    // Given the user wants "new account" to work, I should assume they came from Register page which should auto-login or redirect here.
+    // Let's add simple Email/Password inputs to make it functional for any account.
+
+    const [formData, setFormData] = useState({ email: '', password: '' });
+
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setStatus('loading');
+        setErrorMsg('');
+
+        try {
+            const res = await fetch('http://localhost:3000/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || 'Login failed');
+
+            // Store User
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('token', data.token);
+
+            // Redirect based on role
+            if (data.user.role === 'organizer') navigate('/organizer/dashboard');
+            else if (data.user.role === 'club_admin') navigate('/club/dashboard');
+            else navigate('/athlete/dashboard'); // Redirect to Dashboard not Events
+
+        } catch (err) {
+            console.error(err);
+            setErrorMsg(err.message);
+            setStatus('error');
+        }
+    };
+
+    // Quick Login Helpers for Demo
+    const quickLogin = (email, password) => {
+        setFormData({ email, password });
+        // Auto-submit in a useEffect or just let user click? Let's just fill it.
     };
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-            <div className="max-w-5xl w-full">
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl font-display font-bold text-secondary-900 mb-4">Welcome back to <span className="text-primary-600">Sahwigate</span></h1>
-                    <p className="text-gray-500 text-lg">Select your portal to continue.</p>
+            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-display font-bold text-secondary-900 mb-2">Welcome Back</h1>
+                    <p className="text-gray-500">Sign in to Sahwigate Athletes</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Athlete Card */}
-                    <div
-                        onClick={() => handleLogin('athlete', '/athlete/dashboard')}
-                        className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-xl hover:border-primary-200 transition-all group"
-                    >
-                        <div className="w-16 h-16 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
-                            🏃🏾‍♂️
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Athlete</h3>
-                        <p className="text-gray-500 mb-6">Manage your passport, view results, and register for races.</p>
-                        <span className="text-primary-600 font-bold group-hover:underline">Enter Portal &rarr;</span>
+                {status === 'error' && (
+                    <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 text-center">
+                        {errorMsg}
+                    </div>
+                )}
+
+                <form onSubmit={handleLogin} className="space-y-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <input
+                            name="email"
+                            type="email"
+                            required
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+                            placeholder="you@example.com"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input
+                            name="password"
+                            type="password"
+                            required
+                            value={formData.password}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+                            placeholder="••••••••"
+                        />
                     </div>
 
-                    {/* Club Captain Card */}
-                    <div
-                        onClick={() => handleLogin('club', '/club/dashboard')}
-                        className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-xl hover:border-secondary-200 transition-all group"
+                    <button
+                        type="submit"
+                        disabled={status === 'loading'}
+                        className="w-full bg-secondary-900 text-white font-bold py-3 rounded-lg hover:bg-secondary-800 transition-colors disabled:opacity-50"
                     >
-                        <div className="w-16 h-16 bg-secondary-100 text-secondary-600 rounded-full flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
-                            🛡️
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Club Captain</h3>
-                        <p className="text-gray-500 mb-6">Manage your roster, track dues, and order kit for your team.</p>
-                        <span className="text-secondary-600 font-bold group-hover:underline">Enter Portal &rarr;</span>
-                    </div>
+                        {status === 'loading' ? 'Signing in...' : 'Sign In'}
+                    </button>
+                </form>
 
-                    {/* Organizer Card */}
-                    <div
-                        onClick={() => handleLogin('organizer', '/organizer/dashboard')}
-                        className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-xl hover:border-gray-300 transition-all group"
-                    >
-                        <div className="w-16 h-16 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
-                            🏁
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Race Director</h3>
-                        <p className="text-gray-500 mb-6">Configure events, manage logistics, and view live analytics.</p>
-                        <span className="text-gray-700 font-bold group-hover:underline">Enter Suite &rarr;</span>
+                <div className="mt-8 pt-6 border-t border-gray-100">
+                    <p className="text-xs text-center text-gray-400 uppercase tracking-widest font-bold mb-4">Demo Accounts</p>
+                    <div className="flex gap-2 justify-center">
+                        <button onClick={() => quickLogin('nyasha@example.com', 'pass')} className="bg-gray-100 hover:bg-gray-200 text-xs px-3 py-1 rounded">
+                            Athlete (Nyasha)
+                        </button>
+                        <button onClick={() => quickLogin('coach@harriers.com', 'pass')} className="bg-gray-100 hover:bg-gray-200 text-xs px-3 py-1 rounded">
+                            Director (Simba)
+                        </button>
                     </div>
                 </div>
 
-                <div className="text-center mt-12">
-                    <p className="text-gray-400 text-sm">Don't have an account? <Link to="/register" className="text-primary-600 hover:underline">Register as an Athlete</Link> or <Link to="/create-club" className="text-primary-600 hover:underline">Register a Club</Link></p>
+                <div className="text-center mt-6">
+                    <p className="text-gray-500 text-sm">
+                        New here? <Link to="/register" className="text-primary-600 font-bold hover:underline">Create Account</Link>
+                    </p>
                 </div>
             </div>
         </div>

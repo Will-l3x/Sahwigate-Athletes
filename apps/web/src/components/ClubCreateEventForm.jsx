@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export const ClubCreateEventForm = () => {
+export const ClubCreateEventForm = ({ clubId, onClose, onSuccess }) => {
     const navigate = useNavigate();
+    // Note: In a real app, verify user has permission to create events for this club
     const [formData, setFormData] = useState({
         name: '',
         startTime: '',
         location: '',
-        organizerId: 'mock-club-id', // Represents the Club ID
+        organizerId: clubId, // Events linked to the Club
         organizerType: 'CLUB',
         visibility: 'PRIVATE', // Default to Private
-        categories: [{ name: 'Club Run', distance: 5.0, fee: 0 }]
+        categories: [{ name: 'Standard Entry', distance: 10, fee: 20 }]
     });
     const [status, setStatus] = useState('idle');
 

@@ -40,12 +40,50 @@ const raceResults = [
     { result_id: 'res3', user_id: 'u2', race_name: 'Tanganda Half', distance: '21.1km', time: '02:10:45', date: '2025-06-20', rank: 89 }
 ];
 
-const athleteProfiles = [];
+const athleteProfiles = [
+    {
+        athlete_id: 'u1',
+        national_id: '63-1234567-T-12',
+        nationality: 'Zimbabwean',
+        date_of_birth: '1995-05-12',
+        gender: 'Male',
+        phone: '+263 77 123 4567'
+    }
+];
 const payments = [];
 
 module.exports = {
     query: async (text, params = []) => {
         const command = text.trim().toUpperCase();
+
+        // ... existing live tracking ...
+
+        // --- ATHLETE PROFILES ---
+        if (text.includes('SELECT * FROM athlete_profiles WHERE athlete_id')) {
+            const profile = athleteProfiles.find(p => p.athlete_id === params[0]);
+            return { rows: profile ? [profile] : [] };
+        }
+
+        if (text.includes('INSERT INTO athlete_profiles')) {
+            // ... existing insert logic (can leave as is or match new structure)
+            // For consistency with seed, let's just push a formatted object if possible, 
+            // but strictly the previous insert mocked it loosely. 
+            // Let's keep the previous INSERT generic for now to avoid breaking register flow 
+            // unless we want to police it. 
+            // Actually, let's support reading the specific fields we need for the modal.
+            const profile = {
+                athlete_id: params[0],
+                national_id: params[1],
+                nationality: params[2],
+                phone: params[3],
+                date_of_birth: params[4],
+                // ... others
+            };
+            athleteProfiles.push(profile);
+            return { rows: [] };
+        }
+
+        // ... rest of DB
 
         // --- LIVE TRACKING (New) ---
         if (text.includes('SELECT') && text.includes('live_tracking')) {
@@ -78,6 +116,11 @@ module.exports = {
             const userId = 'mock-user-' + Date.now();
             users.push({ user_id: userId, email: params[0], password_hash: params[1], full_name: params[2], role: 'athlete' });
             return { rows: [{ user_id: userId }] };
+        }
+
+        if (text.includes('SELECT * FROM users WHERE user_id')) {
+            const user = users.find(u => u.user_id === params[0]);
+            return { rows: user ? [user] : [] };
         }
 
         // --- ATHLETE PROFILES ---
@@ -140,8 +183,17 @@ module.exports = {
 
         // Mock Update Dues
         if (text.includes('UPDATE club_members')) {
-            const member = clubMembers.find(m => m.membership_id === params[1]); // Assuming params[1] is ID based on typical query "UPDATE ... WHERE id = $2"
-            if (member) member.dues_status = params[0];
+            // Handle both Status update and Dues update
+            const memberId = params[1];
+            const member = clubMembers.find(m => m.membership_id === memberId);
+
+            if (member) {
+                if (text.includes('dues_status')) {
+                    member.dues_status = params[0];
+                } else if (text.includes('status')) {
+                    member.status = params[0];
+                }
+            }
             return { rows: [] };
         }
 

@@ -1,24 +1,50 @@
 import React, { useEffect, useState } from 'react';
 
 export const AthleteDashboard = () => {
-    // In a real app we'd get userId from Auth Context
-    const userId = 'u1';
+    const [user, setUser] = useState({ name: 'Athlete', firstname: 'Athlete' });
     const [history, setHistory] = useState([]);
+    const [recentResults, setRecentResults] = useState([]);
 
     useEffect(() => {
-        // Fetch Mock Results
-        fetch('http://localhost:3000/api/results?userId=' + userId)
-            .then(res => res.json())
-            .then(data => setHistory(data))
-            .catch(err => console.error("Failed to load results", err));
+        const savedUser = JSON.parse(localStorage.getItem('user'));
+        if (savedUser) {
+            setUser({
+                name: savedUser.name || savedUser.fullName || 'Athlete',
+                firstname: (savedUser.name || savedUser.fullName || 'Athlete').split(' ')[0]
+            });
+            // Fetch Recent Results if ID exists
+            if (savedUser.id) {
+                fetch(`http://localhost:3000/api/results?userId=${savedUser.id}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error('Failed to fetch results');
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (Array.isArray(data)) {
+                            setRecentResults(data.slice(0, 3));
+                            setHistory(data);
+                        } else {
+                            console.error('API return invalid data:', data);
+                            setHistory([]);
+                            setRecentResults([]);
+                        }
+                    })
+                    .catch(e => {
+                        console.error(e);
+                        // Ensure state is clean on error to prevent crash
+                        setHistory([]);
+                        setRecentResults([]);
+                    });
+            }
+        }
     }, []);
 
     return (
         <div className="max-w-6xl mx-auto mt-8 p-6">
             <div className="flex justify-between items-end mb-8">
                 <div>
-                    <h1 className="text-3xl font-display font-bold text-secondary-900">Welcome back, Nyasha</h1>
-                    <p className="text-gray-500">Member of <span className="font-semibold text-primary-600">Harare Harriers</span></p>
+                    <h1 className="text-3xl font-display font-bold text-secondary-900">Welcome back, {user.firstname}</h1>
+                    <p className="text-gray-500">Member of <span className="font-semibold text-primary-600">Sahwigate Athletics</span></p>
                 </div>
                 <div className="text-right">
                     <p className="text-xs text-uppercase text-gray-400 font-bold tracking-wider">Next Race</p>

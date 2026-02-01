@@ -25,6 +25,13 @@ export const RegistrationForm = () => {
                 body: JSON.stringify(formData),
             });
             if (!res.ok) throw new Error('Registration failed');
+
+            const data = await res.json();
+
+            // Auto-login: Store session
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('token', data.token);
+
             setStatus('success');
         } catch (err) {
             console.error(err);

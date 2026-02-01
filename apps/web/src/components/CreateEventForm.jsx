@@ -6,13 +6,20 @@ export const CreateEventForm = () => {
         name: '',
         startTime: '',
         location: '',
-        organizerId: 'mock-organizer-id',
+        organizerId: '', // Will be set from auth
         organizerType: 'CLUB', // Default to CLUB for this demo
         visibility: 'PRIVATE', // Default to Private for clubs
-        categories: [{ name: '5km Fun Run', distance: 5.0, fee: 5 }]
+        categories: [{ name: 'Standard Entry', distance: 10, fee: 20 }]
     });
     const [status, setStatus] = useState('idle');
     const [showPayment, setShowPayment] = useState(false);
+
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user && user.id) {
+            setFormData(prev => ({ ...prev, organizerId: user.id }));
+        }
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });

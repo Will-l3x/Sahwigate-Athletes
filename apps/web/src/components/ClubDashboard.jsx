@@ -3,28 +3,25 @@ import { Link } from 'react-router-dom';
 import { ClubStatusPage } from './ClubStatusPage';
 
 export const ClubDashboard = () => {
-    // Mock Data for "Harare Harriers" - In real app, fetch this from context/API
     const [club, setClub] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulating fetching current user's club
-        // For demo purposes, we'll try to fetch 'c3' which is the pending one, or default to c1
-        // To test the flow, we will try to fetch the club we just created if possible, but since we don't have auth context fully wired:
-        // We will mock fetching club 'c3' (Vic Falls Trailblazers) which is PENDING in our initial seed
-        const fetchClub = async () => {
-            try {
-                // Fetching specific club for demo
-                const res = await fetch('http://localhost:3000/api/clubs/c3');
-                const data = await res.json();
+        // In a real app, we'd get the club ID associated with the logged-in user (admin)
+        // For this demo, since we seeded 'Harare Harriers' as 'c1' and the logged in user might be 'u1' (member) or 'u3' (organizer)...
+        // Let's assume the user is managing 'c1'.
+        const clubId = 'c1'; // Default for demo
+
+        fetch(`http://localhost:3000/api/clubs/${clubId}`)
+            .then(res => res.json())
+            .then(data => {
                 setClub(data);
-            } catch (err) {
-                console.error('Failed to fetch club status');
-            } finally {
                 setLoading(false);
-            }
-        };
-        fetchClub();
+            })
+            .catch(err => {
+                console.error('Failed to fetch club status', err);
+                setLoading(false);
+            });
     }, []);
 
     if (loading) return <div className="p-8 text-center text-gray-500">Loading Club Portal...</div>;
