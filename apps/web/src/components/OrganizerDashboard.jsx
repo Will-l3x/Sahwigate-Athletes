@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+// --- Organizer Dashboard ---
+// Main landing page for organizers. Shows status of events and tasks.
 export const OrganizerDashboard = () => {
     const [pendingClubs, setPendingClubs] = useState([]);
 
@@ -8,6 +10,7 @@ export const OrganizerDashboard = () => {
         fetchClubs();
     }, []);
 
+    // Fetch clubs that are waiting for approval
     const fetchClubs = async () => {
         try {
             const res = await fetch('http://localhost:3000/api/clubs');
@@ -18,6 +21,11 @@ export const OrganizerDashboard = () => {
         }
     };
 
+    /**
+     * Approves or Rejects a club application.
+     * @param {string} clubId - The ID of the club
+     * @param {string} status - New status (APPROVED/REJECTED)
+     */
     const updateStatus = async (clubId, status) => {
         try {
             await fetch(`http://localhost:3000/api/clubs/${clubId}/status`, {
@@ -25,7 +33,7 @@ export const OrganizerDashboard = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
             });
-            fetchClubs(); // Refresh list
+            fetchClubs(); // Refresh list to remove the processed club
         } catch (err) {
             console.error('Failed to update status');
         }

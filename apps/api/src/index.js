@@ -3,7 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
-// Models
+// --- Models ---
+// Importing all our data models here for easy access.
+
 const User = require('./models/User');
 const Race = require('./models/Race');
 const Club = require('./models/Club');
@@ -14,13 +16,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Database Connection
+// --- Database Connection ---
+// Connects to MongoDB using the URI from env or falls back to local.
+
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/sahwigate')
     .then(() => console.log('✅ Connected to MongoDB'))
     .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
 // --- AUTH & USERS ---
+// Endpoints for user authentication (login/register) and profile management.
 
+/**
+ * POST /api/auth/login
+ * Validates credentials and returns a JWT token (mocked for now).
+ */
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -35,6 +44,10 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+/**
+ * POST /api/auth/register
+ * Creates a new user account. Defaults to 'athlete' role if not specified.
+ */
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { email, password, fullName, role, nationalId, dateOfBirth, gender, nationality, phone } = req.body;
@@ -99,6 +112,7 @@ app.get('/api/auth/profile/:userId', async (req, res) => {
 });
 
 // --- RACES ---
+// CRUD operations for event management.
 
 app.get('/api/races', async (req, res) => {
     try {
@@ -268,7 +282,9 @@ app.get('/api/results', async (req, res) => {
     }
 });
 
-// Live Tracking MOCK (no DB yet)
+// --- LIVE TRACKING ---
+// MOCK implementation.
+// In production, this would likely use WebSockets or Server-Sent Events (SSE).
 app.get('/api/live-tracking/:raceId', (req, res) => {
     const runners = [
         { id: 101, name: "Isaac Mpofu", bib: "1", country: "ZIM", pace: "3:05/km", dist_km: 40.2 },

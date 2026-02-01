@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { PaymentModal } from './PaymentModal';
 
+// --- Create Event Form ---
+// A complex form handling event details, visibility settings, 
+// and dynamic race categories (e.g., 10k, 21k, etc.).
+
 export const CreateEventForm = () => {
+    // Form state initialized with default values for new events
     const [formData, setFormData] = useState({
         name: '',
         startTime: '',
         location: '',
-        organizerId: '', // Will be set from auth
-        organizerType: 'CLUB', // Default to CLUB for this demo
-        visibility: 'PRIVATE', // Default to Private for clubs
+        organizerId: '', // Will be set from auth context/local storage
+        organizerType: 'CLUB', // Defaulting to CLUB for this iteration
+        visibility: 'PRIVATE', // Private by default for safety
         categories: [{ name: 'Standard Entry', distance: 10, fee: 20 }]
     });
     const [status, setStatus] = useState('idle');
@@ -25,6 +30,7 @@ export const CreateEventForm = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    // Handlers for dynamic category management (add/edit)
     const handleCategoryChange = (index, field, value) => {
         const newCategories = [...formData.categories];
         newCategories[index][field] = value;
@@ -40,6 +46,7 @@ export const CreateEventForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // Trigger payment modal instead of direct submission
         setShowPayment(true);
     };
 

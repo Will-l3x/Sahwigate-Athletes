@@ -1,4 +1,6 @@
 /* MOCK DB ADAPTER - USE WHEN POSTGRES IS UNAVAILABLE */
+// This file provides a temporary in-memory database to allow the app 
+// to run without a real database connection. Useful for UI development/testing.
 console.warn("⚠️  USING IN-MEMORY MOCK DATABASE - SEEDED WITH DEMO DATA");
 
 const users = [
@@ -53,6 +55,10 @@ const athleteProfiles = [
 const payments = [];
 
 module.exports = {
+    /**
+     * Mocks a database query.
+     * Detecting SQL-like strings and returning appropriate mock data.
+     */
     query: async (text, params = []) => {
         const command = text.trim().toUpperCase();
 
