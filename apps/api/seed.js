@@ -45,6 +45,13 @@ async function seed() {
             role: 'organizer'
         });
 
+        const clubAdmin = await User.create({
+            email: 'admin@harriers.com',
+            passwordHash: 'pass',
+            fullName: 'Admin Alice',
+            role: 'club_admin'
+        });
+
         console.log('✅ Users Seeded');
 
         // 2. Create Races

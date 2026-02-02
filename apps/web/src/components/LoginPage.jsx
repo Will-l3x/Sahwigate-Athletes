@@ -48,9 +48,20 @@ export const LoginPage = () => {
     };
 
     // Quick Login Helpers for Demo
-    const quickLogin = (email, password) => {
-        setFormData({ email, password });
-        // Auto-submit in a useEffect or just let user click? Let's just fill it.
+    const quickLogin = (email, password, role) => {
+        // Bypass real login for demo accounts if API is having issues
+        const mockUser = {
+            email,
+            fullName: email === 'nyasha@example.com' ? 'Nyasha Ushe' : email === 'coach@harriers.com' ? 'Coach Simba' : 'Admin Alice',
+            role: role || (email === 'nyasha@example.com' ? 'athlete' : email === 'coach@harriers.com' ? 'organizer' : 'club_admin')
+        };
+
+        localStorage.setItem('user', JSON.stringify(mockUser));
+        localStorage.setItem('token', 'demo-token');
+
+        if (mockUser.role === 'organizer') navigate('/organizer/dashboard');
+        else if (mockUser.role === 'club_admin') navigate('/club/dashboard');
+        else navigate('/athlete/dashboard');
     };
 
     return (
@@ -104,12 +115,15 @@ export const LoginPage = () => {
 
                 <div className="mt-8 pt-6 border-t border-gray-100">
                     <p className="text-xs text-center text-gray-400 uppercase tracking-widest font-bold mb-4">Demo Accounts</p>
-                    <div className="flex gap-2 justify-center">
-                        <button onClick={() => quickLogin('nyasha@example.com', 'pass')} className="bg-gray-100 hover:bg-gray-200 text-xs px-3 py-1 rounded">
+                    <div className="flex gap-2 justify-center flex-wrap">
+                        <button onClick={() => quickLogin('nyasha@example.com', 'pass', 'athlete')} className="bg-gray-100 hover:bg-gray-200 text-xs px-3 py-1 rounded">
                             Athlete (Nyasha)
                         </button>
-                        <button onClick={() => quickLogin('coach@harriers.com', 'pass')} className="bg-gray-100 hover:bg-gray-200 text-xs px-3 py-1 rounded">
+                        <button onClick={() => quickLogin('coach@harriers.com', 'pass', 'organizer')} className="bg-gray-100 hover:bg-gray-200 text-xs px-3 py-1 rounded">
                             Director (Simba)
+                        </button>
+                        <button onClick={() => quickLogin('admin@harriers.com', 'pass', 'club_admin')} className="bg-gray-100 hover:bg-gray-200 text-xs px-3 py-1 rounded">
+                            Club Admin (Alice)
                         </button>
                     </div>
                 </div>
